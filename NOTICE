@@ -1,0 +1,10 @@
+@fungi.computer/capnweb
+Copyright (c) 2025 Cloudflare, Inc. (upstream capnweb, MIT; see LICENSE.txt)
+
+This package is a fork of capnweb (https://github.com/cloudflare/capnweb) at the
+v0.12.0 release commit 7702075. The source is unchanged except for one fix in
+src/types.d.ts: UnstubifyInner spreads a tuple tail through UnstubifyAll<Tail>
+instead of Unstubify<Tail>. Unstubify<Tail> is a union that includes Promise, so
+the upstream declarations fail with TS2574 ("A rest element type must be an
+array type") under skipLibCheck: false and lose tuple parameter types.
+Drop this fork when upstream capnweb publishes the fix.
