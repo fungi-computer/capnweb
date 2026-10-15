@@ -6,8 +6,17 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fungi-computer/capnweb.git"
+  },
+  "author": "Kenton Varda <kenton@cloudflare.com>",
+  "contributors": [
+    "Levi <levi@technomancy.dev>"
+  ],
   "files": [
     "dist",
+    "README.md",
     "LICENSE.txt",
     "NOTICE"
   ],

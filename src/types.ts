@@ -8,10 +8,11 @@
 // TypeScript uses *structural* typing meaning anything with the same shape as type `T` is a `T`.
 // For the classes exported by `cloudflare:workers` we want *nominal* typing (i.e. we only want to
 // accept `WorkerEntrypoint` from `cloudflare:workers`, not any other class with the same shape)
-export const __RPC_STUB_BRAND: "__RPC_STUB_BRAND";
-export const __RPC_TARGET_BRAND: "__RPC_TARGET_BRAND";
+export const __RPC_STUB_BRAND = "__RPC_STUB_BRAND";
+export const __RPC_TARGET_BRAND = "__RPC_TARGET_BRAND";
 // Distinguishes mapper placeholders from regular values so param unwrapping can accept them.
-declare const __RPC_MAP_VALUE_BRAND: unique symbol;
+// Type-only outside this file: it keys an interface member, never a runtime object.
+const __RPC_MAP_VALUE_BRAND: unique symbol = Symbol("__RPC_MAP_VALUE_BRAND");
 export interface RpcTargetBranded {
   [__RPC_TARGET_BRAND]: never;
 }
