@@ -114,7 +114,11 @@ export class BunWebSocketTransport<T = undefined> implements RpcTransport {
       return;
     }
 
-    let strData = typeof data === "string" ? data : data.toString("utf-8");
+    // Preserve a leading BOM, matching Buffer's UTF-8 string decoding.
+    let strData =
+      typeof data === "string"
+        ? data
+        : new TextDecoder("utf-8", { ignoreBOM: true }).decode(data);
 
     if (this.#receiveResolver) {
       this.#receiveResolver(strData);

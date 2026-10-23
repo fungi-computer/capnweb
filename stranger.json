@@ -1,0 +1,46 @@
+{
+  "expectedTarballFiles": [
+    "package/LICENSE.txt",
+    "package/NOTICE",
+    "package/README.md",
+    "package/dist/index-bun.cjs",
+    "package/dist/index-bun.cjs.map",
+    "package/dist/index-bun.d.cts",
+    "package/dist/index-bun.d.ts",
+    "package/dist/index-bun.js",
+    "package/dist/index-bun.js.map",
+    "package/dist/index-workers.cjs",
+    "package/dist/index-workers.cjs.map",
+    "package/dist/index-workers.d.cts",
+    "package/dist/index-workers.d.ts",
+    "package/dist/index-workers.js",
+    "package/dist/index-workers.js.map",
+    "package/dist/index.cjs",
+    "package/dist/index.cjs.map",
+    "package/dist/index.d.cts",
+    "package/dist/index.d.ts",
+    "package/dist/index.js",
+    "package/dist/index.js.map",
+    "package/package.json"
+  ],
+  "localDependencies": [],
+  "runtimeFixture": "test/stranger/runtime.mjs",
+  "typechecks": [
+    {
+      "fixture": "test/stranger/consumer.mts",
+      "environment": {
+        "types": [
+          "node"
+        ],
+        "lib": [
+          "ESNext",
+          "DOM",
+          "DOM.Iterable"
+        ]
+      }
+    }
+  ],
+  "consumerDevDependencies": {
+    "@types/node": "24.13.3"
+  }
+}
