@@ -1,7 +1,7 @@
 {
   "name": "@fungi.computer/capnweb",
   "version": "0.12.0",
-  "description": "Fork of capnweb 0.12.0 with corrected tuple declarations",
+  "description": "Fork of capnweb 0.12.0 with corrected tuple declarations and idle stream cancellation",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -38,18 +38,21 @@
     }
   },
   "scripts": {
-    "build": "tsdown --config-loader native"
+    "build": "tsdown --config-loader native",
+    "test": "node --test test/streams.test.mjs"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "5.20261001.1",
     "bun-types": "1.4.1",
+    "capnweb": "0.12.0",
     "tsdown": "0.22.14",
     "typescript": "5.9.3"
   },
   "botanical": {
     "role": "package",
     "operations": {
-      "build": "required"
+      "build": "required",
+      "test": "required"
     }
   }
 }

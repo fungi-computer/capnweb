@@ -144,8 +144,7 @@ class WritableStreamStubHook extends StubHook {
   }
 
   onBroken(callback: (error: any) => void): void {
-    // WritableStream stubs don't really have a "broken" state in the same way.
-    // The caller would notice when write/close/abort fails.
+    this.getState().writer.closed.then(undefined, callback);
   }
 }
 
@@ -360,6 +359,21 @@ function createWritableStreamFromHook(hook: StubHook): WritableStream {
   };
 
   return new WritableStream({
+    start(controller) {
+      // A broken destination must interrupt even an idle sender's pipe.
+      hook.onBroken((err) => {
+        if (pendingError === undefined) {
+          pendingError = err;
+          controller.error(err);
+          disposeHook();
+        }
+        if (windowReject) {
+          windowReject(err);
+          windowResolve = undefined;
+          windowReject = undefined;
+        }
+      });
+    },
     write(chunk, controller) {
       // If we already have an error, fail immediately.
       if (pendingError !== undefined) {

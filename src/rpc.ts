@@ -316,8 +316,14 @@ class ImportTableEntry {
         this.activePull = undefined;
       }
 
-      // The RpcSession itself will have called all our callbacks so we don't need to track the
-      // registrations anymore.
+      // A completed pipe can be disposed without ever resolving its import.
+      // Release its registrations too, rather than retaining the stream until
+      // the whole session ends.
+      if (this.onBrokenRegistrations) {
+        for (let i of this.onBrokenRegistrations) {
+          delete this.session.onBrokenCallbacks[i];
+        }
+      }
       this.onBrokenRegistrations = undefined;
     }
   }
@@ -618,7 +624,7 @@ class RpcSessionImpl implements Importer, Exporter {
       let exportId = this.nextExportId--;
       this.exports[exportId] = { hook, refcount: 1 };
       this.reverseExports.set(hook, exportId);
-      // TODO: Use onBroken().
+      this.watchExport(exportId, hook);
       return exportId;
     }
   }
@@ -640,6 +646,36 @@ class RpcSessionImpl implements Importer, Exporter {
     for (let id of ids) {
       this.releaseExport(id, 1);
     }
+  }
+
+  private watchExport(exportId: ExportId, hook: StubHook) {
+    hook.onBroken((error) => {
+      // An already-broken hook can notify synchronously. Introduce its ID to
+      // the peer before sending the existing broken-reference notification.
+      queueMicrotask(() => {
+        if (
+          this.abortReason !== undefined ||
+          this.exports[exportId]?.hook !== hook
+        ) {
+          return;
+        }
+        try {
+          this.send([
+            "reject",
+            exportId,
+            Devaluator.devaluate(
+              error,
+              undefined,
+              this,
+              undefined,
+              this.encodingLevel,
+            ),
+          ]);
+        } catch (err) {
+          this.abort(err);
+        }
+      });
+    });
   }
 
   private releaseExport(exportId: ExportId, refcount: number) {
@@ -1125,16 +1161,18 @@ class RpcSessionImpl implements Importer, Exporter {
       }
     }
 
-    // WATCH OUT: these are sparse arrays. `for/let/of` will iterate only positive indexes
-    // including deleted indexes -- bad. We need to use `for/let/in` instead.
-    for (let i in this.onBrokenCallbacks) {
+    // An observer can dispose its import and unregister other observers.
+    // Snapshot the live callbacks so abort still notifies every registration.
+    for (let callback of Object.values(this.onBrokenCallbacks)) {
       try {
-        this.onBrokenCallbacks[i](error);
+        callback(error);
       } catch (err) {
         // Treat as unhandled rejection.
         Promise.resolve(err);
       }
     }
+    // WATCH OUT: these are sparse arrays. `for/let/of` will iterate only positive indexes
+    // including deleted indexes -- bad. We need to use `for/let/in` instead.
     for (let i in this.imports) {
       this.imports[i].abort(error);
     }
@@ -1233,7 +1271,9 @@ class RpcSessionImpl implements Importer, Exporter {
             // ["readable", importId].
             let { readable, writable } = new TransformStream();
             let hook = streamImpl.createWritableStreamHook(writable);
+            let exportId = this.exports.length;
             this.exports.push({ hook, refcount: 1, pipeReadable: readable });
+            this.watchExport(exportId, hook);
             continue;
           }
 
