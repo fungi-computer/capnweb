@@ -5,6 +5,41 @@ import { queryObjects } from "node:v8";
 import * as upstream from "capnweb";
 import * as fork from "../dist/index.js";
 
+class ClosingWebSocket extends EventTarget {
+  readyState = WebSocket.OPEN;
+  binaryType = "arraybuffer";
+
+  close(code = 1000, reason = "") {
+    this.readyState = WebSocket.CLOSING;
+    queueMicrotask(() => {
+      this.readyState = WebSocket.CLOSED;
+      this.dispatchEvent(Object.assign(new Event("close"), { code, reason }));
+    });
+  }
+}
+
+for (const closeFrom of ["local abort", "peer close"]) {
+  test(`${closeFrom} rejects waiting and future transport receives`, async () => {
+    const socket = new ClosingWebSocket();
+    const transport = new fork.WebSocketTransport(socket);
+    const reason = new Error("transport closed");
+    let rejection;
+    const waiting = transport.receive().catch((error) => {
+      rejection = error;
+    });
+    if (closeFrom === "local abort") transport.abort(reason);
+    else socket.close(1000, reason.message);
+
+    // Native close events are asynchronous; neither path may leave its waiter.
+    await setImmediate();
+    assert.ok(rejection instanceof Error);
+    if (closeFrom === "local abort") assert.equal(rejection, reason);
+    else assert.match(rejection.message, /Peer closed WebSocket: 1000/);
+    await waiting;
+    await assert.rejects(transport.receive(), (error) => error === rejection);
+  });
+}
+
 function connect(t, sender, receiver, target) {
   const channel = new MessageChannel();
   const source = sender.newMessagePortRpcSession(channel.port1, target);

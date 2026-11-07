@@ -152,10 +152,7 @@ export class WebSocketTransport<T extends string | ArrayBuffer = string> {
     }
     this.#webSocket.close(3000, message);
 
-    if (!this.#error) {
-      this.#error = reason;
-      // No need to call receiveRejecter(); RPC implementation will stop listening anyway.
-    }
+    this.#receivedError(reason);
   }
 
   #receivedError(reason: any) {

@@ -1,6 +1,6 @@
 {
   "name": "@fungi.computer/capnweb",
-  "version": "0.12.0",
+  "version": "0.12.0-fungi.0",
   "description": "Fork of capnweb 0.12.0 with corrected tuple declarations and idle stream cancellation",
   "type": "module",
   "main": "dist/index.js",
